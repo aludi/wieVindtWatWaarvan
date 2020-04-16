@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="/static/css/normalize.css">
+        <link rel="stylesheet" href="/static/css/skeleton.css">
+        {% if title %}
+        <title>{{title}} - Microblog</title>
+        {% else %}
+        <title>Microblog</title>
+        {% endif %}
+    </head>
+    <body>
+        <div class="container">
+            <a href="https://openstate.eu/nl/">
+                <img style="class:center"; src="/static/images/Open-state-foundation-logo.svg", width="80%", height="30%">
+            </a>
+                <div style="color: chocolate; font-family:monospace; font-size:50px; text-align:center;">
+                    WieVindtWatWaarvan?
+                </div>
+            <div style="text-align:center;">
+                <a href="{{url_for('index')}}">Start</a>
+                <a href="{{url_for('about')}}">Over</a>
+                <a href="{{url_for('examples')}}">Voorbeelden</a>
+                <a href="{{url_for('references')}}">Referenties</a>
+            </div>
+        </div>
+
+
+
+    <div class="container">
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li> {{message}} </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+   </body>
+</html>
+
