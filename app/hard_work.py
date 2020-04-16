@@ -8,10 +8,11 @@ import math
 import pattern.text.nl as pl # USE PATTERN NOT PATTERNLITE
 import requests
 import spacy
+import nl_core_news_sm
 from app import db
 from app.models import Sents
 
-nlp = spacy.load("nl_core_news_sm")
+nlp = nl_core_news_sm.load()
 
 def loadAttributes(p):
     party = p["parties"][0]

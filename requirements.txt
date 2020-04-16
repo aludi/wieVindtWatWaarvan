@@ -21,6 +21,7 @@ lxml==4.5.0
 more-itertools==8.2.0
 murmurhash==1.0.2
 mysqlclient==1.4.6
+nl-core-news-sm==2.2.5
 nltk==3.5
 numpy==1.18.2
 Pattern==3.6
