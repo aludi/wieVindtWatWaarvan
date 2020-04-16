@@ -217,7 +217,7 @@ class Hard_Work():
         mainLoop(self.collection, self.idfDict, self.topics, self.corpus)
         
 def not_a_filtered_expression(phrase):
-    filteredList = ["huiselijk geweld", "sociale huurwoningen", "sociale huurbouw", "publieke tribune", "hard gemaakt", "speciaal onderwijs", "provinciale staten"]
+    filteredList = ["huiselijk geweld", "doorgaande weg", "sociale huurwoningen", "sociale huurbouw", "publieke tribune", "hard gemaakt", "speciaal onderwijs", "provinciale staten"]
     if phrase in filteredList:
         return False
     else:
@@ -279,7 +279,6 @@ def do_nlp_recursion(sentiment, sentiment_words, relevantWords, sentence):
         
 def getSentiments(relevantWords, text):
     for sentence in text:
-        #print("SENTENCE: ", sentence)
         entitiesFound = []
         for sentiment in pl.sentiment(sentence).assessments:
             sentiment_words, pol, obj, x = sentiment

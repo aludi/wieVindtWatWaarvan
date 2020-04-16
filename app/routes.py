@@ -70,11 +70,15 @@ def login():
     
 @app.route('/processing', methods = ['GET', 'POST'])
 def processing():
+    startTime = time.time()
     print(Words().query.all())
-    
-    #if time.time() - startTime > 2:
-    return redirect(url_for('outcome'))
-    #return render_template('processing.html', title='processing')
+
+    '''
+    if startTime-time.time() > poliIter*60:
+        return redirect(url_for('outcome'))
+    else:
+        return render_template('processing.html', title='processing')
+    '''
 
 @app.route('/outcome', methods = ['POST', 'GET'])
 def outcome():
@@ -83,15 +87,24 @@ def outcome():
         return redirect(url_for('download_data'))
     else:
         for searchPairs in Words().query.all():
-            corpus, topic, poliIter =searchPairs.corpus_words_raw, searchPairs.topic_words_raw, searchPairs.max_texts
+            corpus, topic, poliIter = searchPairs.corpus_words_raw, searchPairs.topic_words_raw, searchPairs.max_texts
         flash("searching for topics {} in corpus {}...".format(corpus, topic))
         hardwork = Hard_Work(corpus, topic, poliIter)
-        for sents_on_ents in Sents().query.all():
-            flash("In article {} by {}, found sentiments polarity {} objectivity {} on entity \"{}\" through words \'{}\' ". format(sents_on_ents.title, sents_on_ents.parties, sents_on_ents.polarity, sents_on_ents.objectivity, sents_on_ents.entity, sents_on_ents.direct_words))
-        print("in here")
         return render_template('outcome.html', title='Output', form=form)
-            
-            
+
+@app.route('/raw_data',  methods = ['POST', 'GET'])
+def raw_data():
+    form = download_as_csv()
+    if form.validate_on_submit():
+        return redirect(url_for('download_data'))
+    for sents_on_ents in Sents().query.all():
+        flash(
+            "In article {} by {}, found sentiments polarity {} objectivity {} on entity \"{}\" through words \'{}\' ".format(
+                sents_on_ents.title, sents_on_ents.parties, sents_on_ents.polarity, sents_on_ents.objectivity,
+                sents_on_ents.entity, sents_on_ents.direct_words))
+
+    return render_template('raw_data.html', title='ruwe data', form=form)
+
 @app.route('/download_data', methods = ['POST', 'GET'])
 def download_data():
     def create_appended_list(direct_words):
@@ -106,7 +119,6 @@ def download_data():
         for row in Sents().query.all():
             direct_words_string = create_appended_list(row.direct_words)
             yield ','.join([row.title, row.parties, row.location, row.date, row.entity, row.polarity, row.objectivity, direct_words_string])+'\n'
-            
     return Response(generate(), mimetype="text/csv", headers={"Content-disposition":"attachment; filename=entitiesSentiment.csv"})
 
 @app.route('/about')
@@ -120,4 +132,3 @@ def examples():
 @app.route('/references')
 def references():
     return render_template('references.html', title='references')
-    
