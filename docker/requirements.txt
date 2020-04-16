@@ -1,0 +1,8 @@
+beautifulsoup4==4.6.3
+Flask
+flask_sqlalchemy
+flask_migrate
+flask_wtf
+pattern
+spacy
+alembic
