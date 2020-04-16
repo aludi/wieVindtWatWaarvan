@@ -1,14 +1,10 @@
 import os
 import sys
 import json
-#from termcolor import colored
-import pathlib
-import time
 import statistics
 import string
 from bs4 import BeautifulSoup
 import math
-import csv
 import pattern.text.nl as pl # USE PATTERN NOT PATTERNLITE
 import requests
 import spacy
