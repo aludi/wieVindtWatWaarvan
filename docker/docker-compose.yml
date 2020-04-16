@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      # - ENV FLASK_APP=website.py
+      - FLASK_DEBUG=1
     volumes:
       - ../:/opt/wvww
     networks:

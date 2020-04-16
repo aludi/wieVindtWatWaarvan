@@ -4,6 +4,6 @@ WORKDIR /opt/wvww
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-RUN python -m spacy download nl_core_web_sm
+RUN python -m spacy download nl_core_news_sm
 
-CMD ["flask", "flaskTest.py"]
+CMD flask run --host=0.0.0.0
