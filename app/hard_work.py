@@ -75,14 +75,8 @@ def collectDataPoliflw(userQueryTerms, maxVal):
                                                                      "size": "100"})
         #print(p.json())
         collection.append(p.json())
-
         i = i + 100
-    '''
-    for term in userQueryTerms:
-        i = 0
-        if maxVal > 10:
-            maxVal = 1
-    '''
+
     return collection
 
 def computeFrequency(bag, num):
@@ -208,8 +202,6 @@ def initialize_empty(item):
                 pass
     return relevantWords
 
-    
-
 
 class Hard_Work():
     def __init__(self, corpus, topics, poliIter, local_call):
@@ -227,56 +219,6 @@ def not_a_filtered_expression(phrase):
         return False
     else:
         return True
-
-#def recurse_to_find_entity(max_val_tf, relevantWords, chunk, collected_words, attachment_strength, userTopics):
-    '''
-    if chunk.text in relevantWords.keys():
-        print("\t", chunk.text, relevantWords[chunk.text][2])
-
-    print("\t", chunk.text, chunk.head, chunk.dep_, chunk.pos_, chunk.lemma_, userTopics)
-    print("\t", collected_words)
-    print("\n\n")
-    print(chunk.lemma_ in userTopics, chunk.text in userTopics)
-    '''
-
-    #if attachment_strength < 0.10:
-    #    return chunk.text, collected_words, attachment_strength
-    '''
-    if chunk.pos_ == "NOUN" and userTopics != 0:
-        userTopics = chunk.head.text
-        return recurse_to_find_entity(max_val_tf, relevantWords, chunk.head, collected_words, attachment_strength/2, userTopics)
-
-    if chunk.pos_ != "NOUN" and userTopics == 0:
-        # go for nearest noun
-        collected_words.append(chunk.text)
-        return recurse_to_find_entity(max_val_tf, relevantWords, chunk.head, collected_words, attachment_strength / 2,
-                                      userTopics)
-
-    if chunk.pos_ != "NOUN" and userTopics != 0:
-        # you already found the nearest head, so find the children
-
-        collected_words.append(chunk.text)
-        return recurse_to_find_entity(max_val_tf, relevantWords, chunk.head, collected_words, attachment_strength / 2,
-                                      userTopics)
-    '''
-
-    '''
-
-    if chunk.pos_ not in ["VERB", "CONJ"] and chunk.dep_ not in ["advmod", "xcomp"]:
-        collected_words.append(chunk.text)
-
-    if (chunk.text in relevantWords.keys() and relevantWords[chunk.text][2] >= max_val_tf/2) or (chunk.lemma_ in userTopics) or (chunk.text in userTopics):
-        return chunk.text, collected_words, attachment_strength
-    elif chunk.dep_ == "ROOT":
-        for child in chunk.children:
-            if (child.text in relevantWords.keys() and relevantWords[child.text][2] > max_val_tf/2) or child.text in userTopics:  # dealing with "hij is blij"   #TODO: adjust to num items in document maybe?
-                collected_words.append(child.text)
-                return child.text, collected_words, attachment_strength/2
-        return "", [], 0
-    else:
-
-        return recurse_to_find_entity(max_val_tf, relevantWords, chunk.head, collected_words, attachment_strength / 2, userTopics)
-    '''
 
 def run_test_set():
     print("\n\n")
@@ -308,10 +250,8 @@ def run_test_set():
                 print("\t", key, direct, average_polarity_word, average_objectivity_word)
                 finalList.append((key, average_polarity_word, average_objectivity_word))
 
-    checkList=[("stroom", 10, 40), ("stroom", 15, 60), ("kernenergie", -12, 35),
-               ]
+    checkList=[("stroom", 10, 40), ("stroom", 15, 60), ("kernenergie", -12, 35)]
     '''
-
     i = 0
     while i < len(checkList):
         if checkList[i] == finalList[i]:
@@ -322,15 +262,8 @@ def run_test_set():
 
     '''
 
-
-
-
-
-
-
 def recurse_to_find_entity(chunk, head, first_noun, second_noun, verb_count, collected_words):
     #print("\t", chunk.text, chunk.pos_, chunk.dep_, head, first_noun, second_noun)
-
     if (chunk.pos_ == "NOUN" or chunk.pos_ == "PROPN") and len(chunk.text) > 1 and first_noun != 0 and chunk.text != head:
         #print("found the second noun")
         #print(chunk.text, first_noun)
@@ -338,7 +271,6 @@ def recurse_to_find_entity(chunk, head, first_noun, second_noun, verb_count, col
         collected_words.append(second_noun.upper())
         #print("final collected words: ", collected_words)
         return collected_words
-
     elif (chunk.pos_ == "NOUN" or chunk.pos_ == "PROPN") and first_noun == 0:
         #print("found the first noun")
         #print(chunk.text)
@@ -352,19 +284,14 @@ def recurse_to_find_entity(chunk, head, first_noun, second_noun, verb_count, col
                 return recurse_to_find_entity(child, head, first_noun, second_noun, verb_count, collected_words)
         #print("end of children")
         return recurse_to_find_entity(chunk.head, head, first_noun, second_noun, verb_count, collected_words)
-
     else:
         #print("didn't find a noun")
         #print("look through children first")
         collected_words.append(chunk.text)
-
         if chunk.pos_ == "VERB":
             verb_count += 1
-
         if verb_count > 1:
             return collected_words
-
-
         for child in chunk.children:
             if child.text not in collected_words and child.text.upper() not in collected_words:
                 return recurse_to_find_entity(child, head, first_noun, second_noun, verb_count, collected_words)
@@ -377,131 +304,32 @@ def recurse_to_find_entity(chunk, head, first_noun, second_noun, verb_count, col
             return collected_words
 
 
-
-
-
-    '''
-    if (chunk.pos_ == "NOUN" or chunk.pos_ == "PROPN") and first_noun == 0:
-        print("you found the first noun!")
-        collected_words.append(chunk.text)
-        first_noun = chunk.text
-        head = chunk
-        # two options, either you look for the second noun in the children, or you look for it in the head
-        #for child in chunk.children:
-        #    return recurse_to_find_entity(child, head, first_noun, collected_words)
-        #print("first noun has no children")
-        #return recurse_to_find_entity(chunk.head, head, first_noun, collected_words)
-
-    if (chunk.pos_ == "NOUN" or chunk.pos_ == "PROPN") and first_noun != 0:
-        print("you found the second noun!, we're done!")
-        print(chunk.text, first_noun)
-        collected_words.append(chunk.text)
-        return collected_words
-
-    if chunk.pos_ != "NOUN" and first_noun == 0:
-        collected_words.append(chunk.text)
-        print("you start here, most likely, with the sentiment")
-
-        return recurse_to_find_entity(chunk.head, head, first_noun, collected_words)
-        #for child in chunk.children:
-        #    if child.text not in collected_words:
-        #        return recurse_to_find_entity(child, head, first_noun, collected_words)
-        #return recurse_to_find_entity(chunk.head, head, first_noun, collected_words)
-        #return collected_words
-
-    if chunk.pos_ != "NOUN" and first_noun != 0:
-        print("you have found the first noun and are looking for the second one")
-        #for child in chunk.children:
-        #    return recurse_to_find_entity(child, head, first_noun, collected_words)
-        #print("no children")
-        #return collected_words
-
-        #print("you haven't found a second noun. returning...")
-        #print(collected_words)
-        #return collected_words
-    '''
-
-
-
-
-
-    '''
-    if chunk.pos_ == "NOUN" and head == 0:
-        print("situation 1")
-        collected_words.append(chunk.text)
-        if chunk.head.dep_ == "ROOT" or chunk.head.pos_ == "VERB":
-            head = chunk.head.text
-        first_noun = chunk.text
-        for child in chunk.children:    # two nouns under the same head
-            if (child.pos_ == "NOUN" or child.dep_ == "nsubj") and child.text != first_noun:
-                collected_words.append(child.text)
-                #print(child.text, child.pos_, child.dep_)
-                return collected_words
-            return collected_words
-        return recurse_to_find_entity(chunk.head, head, first_noun, collected_words)
-
-    if chunk.pos_ != "NOUN":
-        print("situation 2")
-        # you already found the nearest head, so find the children
-        for child in chunk.children:
-            #print("find the noun in the children")
-            #print(child.text)
-            if (child.pos_ == "NOUN" or (child.dep_ == "nsubj" and child.pos_!= "PRON")) and (child.text != first_noun and first_noun != 0):
-                #print(child.text, child.pos_, child.dep_)
-                collected_words.append(child.text)
-                return collected_words
-
-        if chunk.dep_ == "ROOT" or chunk.text == head:
-            #print("find the noun near the root")
-            collected_words.append(chunk.text)
-            for child in chunk.children:
-                #print(child.text)
-                if (child.pos_ == "NOUN" or child.dep_ == "nsubj") and (child.text != first_noun and first_noun !=0):
-                    #print(child.text, child.pos_, child.dep_)
-                    collected_words.append(child.text)
-                    return collected_words
-            return collected_words
-        else:
-            return recurse_to_find_entity(chunk.head, head, first_noun, collected_words)
-    '''
-
 def classify_message_status( funct, ratio, average, median, stdev):
     status = ""
     if funct == "polarity":
         if abs(median) - stdev < 0: # if you have a median of -0.3 and a std of 0.9, you have a mized story
-            #print("MIXED")
             status = "MIXED"
         else:   # if you have a median of 0.9 and a std of 0.01, you have a uniformly positive story
             # almost no spread in the message
-            #print("UNIFORMLY")
             status = "UNIFORM"
         if median > 0.2:
-            #print("POSITIVE")
             status = status + " POSITIVE"
         elif median > 0.4:
-            #print("VERY POSITIVE")
             status = status + " VERY POSITIVE"
         elif median < -0.2:
-            #print("NEGATIVE")
             status = status + " NEGATIVE"
         elif median < -0.4:
-            #print("VERY NEGATIVE")
             status = status + " VERY NEGATIVE"
         else:
-            #print("NEUTRAL")
             status = status + " NEUTRAL"
     else:
         if median < 0.2:
-            #print("VERY OBJECTIVE")
             status = "VERY OBJECTIVE"
         elif median < 0.4:
-            #print("OBJECTIVE")
             status = "OBJECTIVE"
         elif median < 0.7:
-            #print("SUBJECTIVE")
             status = "SUBJECTIVE"
         elif median < 1:
-            #print("VERY SUBJECTIVE")
             status = "VERY SUBJECTIVE"
     print(status)
     return status
@@ -554,8 +382,6 @@ def calculate_status_of_message(max_tfidf_val, userTopics, relevantWords, title)
     else:
         ratio_pol_pos = 0
         ratio_obj = 0
-
-
     print("average of article: ", average_pol, average_obj)
     print("median of article: ", med_pol, med_obj)
     print("standard dev: ", stdev_pol, stdev_obj)
@@ -572,12 +398,8 @@ def calculate_status_of_message(max_tfidf_val, userTopics, relevantWords, title)
 
 def reverse_polarity_if_needed(list_of_string, polarity, sent):
     polarity_reversers = ["risico"]
-    #print(list_of_string)
-
     if "niet" in list_of_string and "niet" not in sent: # the pl tagger missed a negation
         return -1
-
-
     if polarity > 0:    # "enorm risico" is negatief
         for item in polarity_reversers:
             if item in list_of_string:
@@ -599,7 +421,6 @@ def deal_with_empty_lists(statistic, list_sentiment):
         except statistics.StatisticsError:
             val = 0
         return val
-
     elif statistic == "mode":
         try:
             return statistics.mode(list_sentiment)
@@ -608,33 +429,37 @@ def deal_with_empty_lists(statistic, list_sentiment):
     elif statistic == "median":
         return statistics.median(list_sentiment)
 
+def get_lists(directList, tfidfVal, max_tfidf_val):
+    average_polarity_word = 0
+    average_objectivity_word = 0
+    # print(entry, relevantWords[entry])
+    list_polarities = []
+    list_objectivities = []
+    list_words = []
+    if tfidfVal > max_tfidf_val / 4 or entry in topics:
+        for tuple in directList:
+            a, b = tuple
+            # print("a: ",a, "b: ", b)
+            direction = reverse_polarity_if_needed(a, b[1], b[0])
+            if b[1] != 0:
+                list_polarities.append(direction * b[1])
+            list_objectivities.append(b[2])
+            list_words.append(a)
+        # print("\t\t", entry, list_polarities, list_objectivities, list_words)
+    return list_polarities, list_objectivities, list_words
+
+
 def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus, local_call, max_tfidf_val):
     party, location, date, cleanDocument, text, topic, title = text_attributes_collection
     attached_count = 0
     for entry in relevantWords.keys():
-        average_polarity_word = 0
-        average_objectivity_word = 0
-        #print(entry, relevantWords[entry])
         directList, contextList, tfidfVal = relevantWords[entry]
-        list_polarities = []
-        list_objectivities = []
-        list_words = []
-        if tfidfVal > max_tfidf_val / 4 or entry in topics:
-            for tuple in directList:
-                a, b = tuple
-                #print("a: ",a, "b: ", b)
-                direction = reverse_polarity_if_needed(a, b[1], b[0])
-                if b[1] != 0:
-                    list_polarities.append(direction*b[1])
-                list_objectivities.append(b[2])
-                list_words.append(a)
-            # print("\t\t", entry, list_polarities, list_objectivities, list_words)
-            average_polarity_word = int(deal_with_empty_lists("mean", list_polarities) * 100)
-            average_objectivity_word = int(deal_with_empty_lists("mean", list_objectivities) * 100)
-
+        list_polarities, list_objectivities, list_words = get_lists(directList, tfidfVal, max_tfidf_val)
+        average_polarity_word = int(deal_with_empty_lists("mean", list_polarities) * 100)
+        average_objectivity_word = int(deal_with_empty_lists("mean", list_objectivities) * 100)
         if average_polarity_word != 0 or average_objectivity_word != 0:
             attached_count += len(list_words)
-            print("\t", entry, party, average_polarity_word, average_objectivity_word, list_words, tfidfVal)
+            print("\t", entry, party, average_polarity_word, average_objectivity_word, list_words, tfidfVal )
             if local_call:
                 pass
             else:
@@ -642,59 +467,25 @@ def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus
     print("ATTACHED COUNT", attached_count)
 
 
-
 def write_to_db(party, location, date, topics, title, corpus, entry, average_polarity_word, average_objectivity_word, list_words):
             sent_entry_in_db = Sents(parties=str(party), location=str(location), date=str(date),topic=str(topics), title=str(title), corpus=str(corpus), entity=str(entry), polarity=average_polarity_word, objectivity=average_objectivity_word, direct_words=str(list_words))
             #print("adding entry", entry)
             db.session.add(sent_entry_in_db)
-        
-def do_nlp_recursion(sentiment, sentiment_words, relevantWords, sentence, userTopics):
-    #print(sentence)
-    for chunk in nlp(sentence):
-        if chunk.text in sentiment_words and chunk.dep_ not in ['advmod', 'case', 'mark', 'advcl',
-        "obl"]:
-            word, collected_words, attachment_strength = recurse_to_find_entity(relevantWords, chunk, [], 2, 0)
-            #print(chunk, word, collected_words, attachment_strength)
-            if attachment_strength > 0.10:
-                if len(collected_words) > 1:
-                    collected_words.pop(0)
-                collected_words = sentiment_words+collected_words
-                if not_a_filtered_expression(" ".join(collected_words)):
-                    # take care of lemma
-                    lemma = nlp(word)[0].lemma_
-                    if lemma in relevantWords.keys():    # we want to collect the lemmas as much as possible
-                        directList, contextList, tfidfVal = relevantWords[lemma]
-                        directList.append((" ".join(collected_words), sentiment))
-                        #print("adding lemma: ", lemma, " for word ", word, collected_words)
-                    else:   # if we cannot find the lemma, we need to just add the non-lemmatized word
-                        try:
-                            directList, contextList, tfidfVal = relevantWords[word]
-                            directList.append((" ".join(collected_words), sentiment))
-                        except KeyError:
-                            pass
-                        #print("adding word: ", word, collected_words)
-                    break
-    return relevantWords
 
-def attach_direct_list(relevantWords, attachment_strength, total_list, collected_words, word, sentiment):
-    if word is not "":
-        #if len(collected_words) > 1:
-        #    collected_words.pop(0)
-
-        if not_a_filtered_expression(" ".join(total_list)):
-            # take care of lemma
-            lemma = nlp(word)[0].lemma_
-            if lemma in relevantWords.keys():    # we want to collect the lemmas as much as possible
-                directList, contextList, tfidfVal = relevantWords[lemma]
+def attach_direct_list(relevantWords, total_list, collected_words, word, sentiment):
+    if not_a_filtered_expression(" ".join(total_list)):
+        lemma = nlp(word)[0].lemma_
+        if lemma in relevantWords.keys():    # we want to collect the lemmas as much as possible
+            directList, contextList, tfidfVal = relevantWords[lemma]
+            directList.append((" ".join(collected_words), sentiment))
+            #print("adding lemma: ", lemma, " for word ", word, collected_words)
+        else:   # if we cannot find the lemma, we need to just add the non-lemmatized word
+            try:
+                directList, contextList, tfidfVal = relevantWords[word]
                 directList.append((" ".join(collected_words), sentiment))
-                #print("adding lemma: ", lemma, " for word ", word, collected_words)
-            else:   # if we cannot find the lemma, we need to just add the non-lemmatized word
-                try:
-                    directList, contextList, tfidfVal = relevantWords[word]
-                    directList.append((" ".join(collected_words), sentiment))
-                except KeyError:
-                    pass
-                #print("adding word: ", word, collected_words)
+            except KeyError:
+                pass
+            #print("adding word: ", word, collected_words)
     return relevantWords
 
         
@@ -718,33 +509,25 @@ def getSentiments(max_val_tf, relevantWords, text):
         else:
             i = 0
             flag = 0
-
             #print("before chunk", sentiments_in_sentence_list)
             for chunk in nlp(sentence):
                 if chunk.text == 'niet':
                     # we found a negation
                     flag = 1
-
                 #print(chunk.text, chunk.dep_, chunk.pos_, sentiments_in_sentence_list)
                 if chunk.text in sentiments_in_sentence_list and chunk.dep_ not in ['case', 'mark', 'advcl'] and chunk.pos_ not in ["VERB"]:
                     #print(chunk.text, chunk.pos_, chunk.dep_, "in here")
                     res = [val for key, val in sentiments_in_sentence.items() if chunk.text in key]
-
-
                     #print(res)
                     tuple = res[0]
                     sent, a, b, c = tuple
-                    #word, collected_words, attachment_strength = recurse_to_find_entity(max_val_tf, relevantWords, chunk, [], 2, 0)
                     collected_words = recurse_to_find_entity(chunk, 0, 0, 0, 0, [])
                     #print(collected_words)
-
                     if i == 2 and 'niet' not in sent:
                         missed_negation = ["niet"]
                     else:
                         missed_negation= [""]
-
                     new_collected = missed_negation + sent
-
                     if 'naar' not in sent:
                         word = ""
                         for item in collected_words:
@@ -754,25 +537,10 @@ def getSentiments(max_val_tf, relevantWords, text):
                         #word = collected_words[len(collected_words) - 1]
                         #print("\t", word , new_collected, sent)
                         if word != "":
-                            relevantWords = attach_direct_list(relevantWords, 0, collected_words, new_collected, word, tuple)
-
+                            relevantWords = attach_direct_list(relevantWords, collected_words, new_collected, word, tuple)
                     #print(relevantWords[word])
                 if flag == 1:
                     i += 1
-
-            '''
-            for chunk in nlp(sentence):
-            #print(sentence)
-            entitiesFound = []
-            for sentiment in pl.sentiment(sentence).assessments:
-                sentiment_words, pol, obj, x = sentiment
-                print(sentiment_words)
-                if sentiment_words is ['naar']:       # contains?
-                    break
-                #print(sentiment_count, sentiment_words)
-                sentiment_count += 1
-                relevantWords = do_nlp_recursion(sentiment, sentiment_words, relevantWords, sentence, userTopics)
-            '''
     print("SENTIMENT COUNT: ", sentiment_count)
     return relevantWords
 
@@ -785,16 +553,9 @@ def mainLoop(collection, idfDict, topics, corpus, local_call, collection_dict):
             userTopics.append(item)
     else:
         userTopics = corpus
-        
-    #print("COLLECTION: ")
-    #print(collection)
-    #print("\n")
     count = 0
-
     #run_test_set()
-
     dict_of_status = {}
-
     for item in collection_dict.keys():
         (party, location, date, cleanDocument, text, topic, title) = collection_dict[item]
         print("\t", title)
@@ -810,37 +571,7 @@ def mainLoop(collection, idfDict, topics, corpus, local_call, collection_dict):
         get_values_for_row(relevantWords, collection_dict[item], userTopics, corpus, local_call, max)
         polarity_status, objectivity_status = calculate_status_of_message(max, userTopics, relevantWords, title)
         dict_of_status[title] = (polarity_status, objectivity_status)
-        #break
         print('\n')
-        #get_values_for_row(relevantWords, collection_dict[item], topics, corpus, local_call)
-
-    '''
-    for item in collection:
-        #try:
-        for p in item['item']:
-            #print("in P")
-            text_attributes = loadAttributes(p, count)
-            party, location, date, text, topic, title = text_attributes
-            count += 1
-       
-            cleanDocument = getCleanDocument(text)
-            #print(cleanDocument)
-            tfidf, max = getTFIDF(cleanDocument, idfDict)
-            #print("TFODF:", tfidf, max)
-            entities = getEntities(cleanDocument, tfidf, max)
-            #print("ENTITIES", entities)
-            relevantWords = getRelevantTerms(entities, userTopics, tfidf)      # TODO: look at this
-            taggedText = pl.tokenize(text)
-            #print(taggedText)
-            relevantWords = getSentiments(relevantWords, taggedText, userTopics)
-            #print(relevantWords)
-            t_new = party, location, date, cleanDocument, text, topic, title
-
-            get_values_for_row(relevantWords, t_new, topics, corpus, local_call)
-        #except KeyError:
-        #    print("ERROR?")
-        #    pass
-    '''
 
     if not local_call:
         sentiments = Sents.query.all()
