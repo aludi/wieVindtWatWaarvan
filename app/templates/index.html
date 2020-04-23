@@ -17,10 +17,11 @@
             en hoe sterk de sentimenten zijn.
         </p>
         <p> Stel, je wil weten hoe verschillende politieke partijen denken over verschillende energiebronnen.
-        Dan vul je in het onderwerp formulier hieronder iets in als "kernenergie windmolens zonnepanelen biomassa".
+        Dan vul je in het onderwerp formulier hieronder iets in als "kernenergie, windmolens, zonnepanelen, biomassa".
         Dan maakt dit programma een zoekopdracht in Poliflw naar documenten met een van deze termen.</p>
 
         <h5> Zoek op onderwerpen!</h5>
+        <p><small><i> (Met komma's ertussen)</i></small></p>
 
         <form action="" method="post" novalidate>
             {{ form.hidden_tag() }}
@@ -28,13 +29,17 @@
                 {{ form.corpus_words.label }}<br>
                 {{ form.corpus_words(size=200)}}
             </p>
-            <p> Hoeveel x 100 berichten wil je doorzoeken? (Tussen 1 en 9)</p>
+            <p> Hoeveel berichten wil je doorzoeken? (minimaal 100)</p>
+            <p><small><i> Het duurt ongeveer 1.5 minuten per 100 berichten.</i></small></p>
+
             <p>
                 {{ form.max_val.label }}<br>
                 {{ form.max_val(size=20)}}
             </p>
             
             <p> Optioneel: geef ook de sentimenten op specieke onderwerpen binnen de documenten </p>
+            <p><small><i> (Met komma's ertussen)</i></small></p>
+
             <p>
                 {{ form.topic_words.label }}<br>
                 {{ form.topic_words(size=200)}}

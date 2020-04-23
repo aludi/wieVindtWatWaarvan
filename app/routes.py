@@ -89,7 +89,7 @@ def outcome():
         for searchPairs in Words().query.all():
             corpus, topic, poliIter = searchPairs.corpus_words_raw, searchPairs.topic_words_raw, searchPairs.max_texts
         flash("searching for topics {} in corpus {}...".format(corpus, topic))
-        hardwork = Hard_Work(corpus, topic, poliIter)
+        hardwork = Hard_Work(corpus, topic, poliIter, False)
         return render_template('outcome.html', title='Output', form=form)
 
 @app.route('/raw_data',  methods = ['POST', 'GET'])
@@ -97,11 +97,18 @@ def raw_data():
     form = download_as_csv()
     if form.validate_on_submit():
         return redirect(url_for('download_data'))
+
+    relevantList = []
+    words = Words().query.all()
+    for w in words:
+        relevantList.append(w.corpus_words_raw)
+        relevantList.append(w.topic_words_raw)
+    print(relevantList)
     for sents_on_ents in Sents().query.all():
-        flash(
-            "In article {} by {}, found sentiments polarity {} objectivity {} on entity \"{}\" through words \'{}\' ".format(
-                sents_on_ents.title, sents_on_ents.parties, sents_on_ents.polarity, sents_on_ents.objectivity,
-                sents_on_ents.entity, sents_on_ents.direct_words))
+        if sents_on_ents.entity in relevantList:
+            flash("In article {} by {}, found sentiments polarity {} objectivity {} on entity \"{}\" through words \'{}\' ".format(
+                    sents_on_ents.title, sents_on_ents.parties, sents_on_ents.polarity, sents_on_ents.objectivity,
+                    sents_on_ents.entity.upper(), sents_on_ents.direct_words))
 
     return render_template('raw_data.html', title='ruwe data', form=form)
 

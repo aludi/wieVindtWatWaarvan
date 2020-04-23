@@ -11,7 +11,7 @@ class LoginForm(FlaskForm):
 class textInputForm(FlaskForm):
     corpus_words = TextAreaField("Onderwerpen", validators=[Length(min=0, max=140)])
     topic_words = TextAreaField("Sub-onderwerpen", validators=[Length(min=0, max=140)])
-    max_val = IntegerField("Hoeveelheid berichten (x100)")
+    max_val = IntegerField("Hoeveelheid berichten?")
     submit = SubmitField("Go")
 
 class download_as_csv(FlaskForm):
