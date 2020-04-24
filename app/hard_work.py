@@ -26,7 +26,9 @@ class Hard_Work():
         self.objectivity = "0"
         if call_type == 'api':
             print("to implement")
-            collection = json_doc
+
+            collection = [json_doc]
+            #collection = json_doc
             pass
         if call_type == 'local' or call_type == 'flask':
             corpus = cleanUp(corpus)
@@ -94,6 +96,8 @@ def collectDataPoliflw(userQueryTerms, maxVal): # query from poliflw database
                                                                     },
                                                                      "from": i,
                                                                      "size": "100"})
+        print("TYPE")
+        print(type(p))
         collection.append(p.json())
         i = i + 100
     return collection
@@ -134,10 +138,12 @@ def getCleanDocument(text):
         
 def calculateIDF(collection, calculate_own_idf, type_call):   # calculates IDF and loads in the documents
     idfDict = {}
+    #print(collection)
     count = 0
     collection_dict = {}
     for entry in collection:
         try:
+            print("TYPE OF ENTRY: ", type(entry))
             for p in entry['item']:
                 party, location, date, text, topic, title = loadAttributes(p, 0)
                 cleanDocument = getCleanDocument(text)
@@ -178,7 +184,7 @@ def getTFIDF(cleanSentence, idfDict):
             if tfidf[word] > max:
                 max = tfidf[word]
         except KeyError:
-            print(word, "word is not in corpus, not a stopword, so just set it to val. This is not the correct way but it's fine")
+            #print(word, "word is not in corpus, not a stopword, so just set it to val. This is not the correct way but it's fine")
             tfidf[word] = val
     
     return tfidf, max
@@ -327,29 +333,29 @@ def classify_message_status( funct, average, median, stdev):
     status = ""
     if funct == "polarity":
         if abs(median) - stdev < 0: # if you have a median of -0.3 and a std of 0.9, you have a mized story
-            status = "MIXED"
+            status = "GEMENGD"
         else:   # if you have a median of 0.9 and a std of 0.01, you have a uniformly positive story
             # almost no spread in the message
-            status = "UNIFORM"
+            status = "EENDUIDIG"
         if median > 0.2:
-            status = status + " POSITIVE"
+            status = status + " POSITIEF"
         elif median > 0.4:
-            status = status + " VERY POSITIVE"
+            status = status + " ERG POSITIEF"
         elif median < -0.2:
-            status = status + " NEGATIVE"
+            status = status + " NEGATIEF"
         elif median < -0.4:
-            status = status + " VERY NEGATIVE"
+            status = status + " ERG NEGATIEF"
         else:
-            status = status + " NEUTRAL"
+            status = status + " NEUTRAAL"
     else:
         if median < 0.2:
-            status = "VERY OBJECTIVE"
-        elif median < 0.4:
-            status = "OBJECTIVE"
-        elif median < 0.7:
-            status = "SUBJECTIVE"
-        elif median < 1:
-            status = "VERY SUBJECTIVE"
+            status = "ERG OBJECTIEF"
+        elif median < 0.4 and median >= 0.2:
+            status = "OBJECTIEF"
+        elif median < 0.7 and median >= 0.4:
+            status = "SUBJECTIEF"
+        elif median < 1 and median >= 0.7:
+            status = "ERG SUBJECTIEF"
     #print(status)
     return status
 
@@ -364,10 +370,11 @@ def calculate_status_of_message(max_tfidf_val, userTopics, relevantWords, title)
         average_polarity_message_list = average_polarity_message_list + list_polarities
         average_objectivity_message_list = average_objectivity_message_list + list_objectivities
 
-    print(average_polarity_message_list, average_objectivity_message_list)
+    #print(average_polarity_message_list, average_objectivity_message_list)
 
 
     # average:
+
     average_pol = round(deal_with_empty_lists("mean", average_polarity_message_list), 2)
     average_obj = round(deal_with_empty_lists("mean", average_objectivity_message_list), 2)
 
@@ -378,9 +385,9 @@ def calculate_status_of_message(max_tfidf_val, userTopics, relevantWords, title)
     med_obj = round(deal_with_empty_lists("median", average_objectivity_message_list), 2)
 
 
-    print("average of article: ", average_pol, average_obj)
+    '''print("average of article: ", average_pol, average_obj)
     print("median of article: ", med_pol, med_obj)
-    print("standard dev: ", stdev_pol, stdev_obj)
+    print("standard dev: ", stdev_pol, stdev_obj)'''
 
     if med_pol == 0 and med_obj == 0 and stdev_pol == 0 and stdev_obj == 0:
         polarity_status = "NO SENTIMENT"
@@ -445,7 +452,7 @@ def get_lists(directList, tfidfVal, max_tfidf_val, userTopics, entry):
 def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus, type_call, max_tfidf_val):
     party, location, date, cleanDocument, text, topic, title = text_attributes_collection
     attached_count = 0
-    print(max_tfidf_val)
+    #print(max_tfidf_val)
     for entry in relevantWords.keys():
         directList, contextList, tfidfVal = relevantWords[entry]
         list_polarities, list_objectivities, list_words = get_lists(directList, tfidfVal, max_tfidf_val, topics, entry)
@@ -453,12 +460,12 @@ def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus
         average_objectivity_word = int(deal_with_empty_lists("mean", list_objectivities) * 100)
         if average_polarity_word != 0 or average_objectivity_word != 0:
             attached_count += len(list_words)
-            print("\t", entry, party, average_polarity_word, average_objectivity_word, list_words, tfidfVal )
+            #print("\t", entry, party, average_polarity_word, average_objectivity_word, list_words, tfidfVal )
             if type_call == 'api' or type_call == 'local':
                 pass
             else:
                 write_to_db(party, location, date, topics, title, corpus, entry, average_polarity_word, average_objectivity_word, list_words)
-    print("ATTACHED COUNT", attached_count)
+    #print("ATTACHED COUNT", attached_count)
 
 
 def write_to_db(party, location, date, topics, title, corpus, entry, average_polarity_word, average_objectivity_word, list_words):
@@ -535,18 +542,21 @@ def getSentiments(max_val_tf, relevantWords, text):
                     #print(relevantWords[word])
                 if flag == 1:
                     i += 1
-    print("SENTIMENT COUNT: ", sentiment_count)
+    #print("SENTIMENT COUNT: ", sentiment_count)
     return relevantWords
 
     
 def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_dict):
     #print(topics, corpus, type(topics), type(corpus))
-    if topics[0] != '':
-        userTopics = corpus
-        for item in topics:
-            userTopics.append(item)
-    else:
-        userTopics = corpus
+    if type_call != "api":
+        if topics[0] != '':
+            userTopics = corpus
+            for item in topics:
+                userTopics.append(item)
+        else:
+            userTopics = corpus
+    if type_call == "api": # no corpus and no topics
+        userTopics = []
     count = 0
     #run_test_set()
     dict_of_status = {}
@@ -554,7 +564,7 @@ def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_di
         (party, location, date, cleanDocument, text, topic, title) = collection_dict[item]
         print("\t", title)
         tfidf, max = getTFIDF(cleanDocument, idfDict)
-        print("MAX:", max)
+        #print("MAX:", max)
         entities = getEntities(cleanDocument, tfidf, max)
         # print("ENTITIES", entities)
         relevantWords = getRelevantTerms(entities, userTopics, tfidf)  # TODO: look at this
@@ -567,6 +577,7 @@ def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_di
         dict_of_status[title] = (polarity_status, objectivity_status)
         if type_call == 'api':
             self.set_polarity_and_objectivity(polarity_status, objectivity_status)
+            print(title, polarity_status, objectivity_status)
         #print('\n')
         #break
 
@@ -580,7 +591,7 @@ def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_di
         with open('text.csv', 'w') as f:
             for key in dict_of_status.keys():
                 over_pol, over_obj = dict_of_status[key]
-                print(over_pol, over_obj)
+                #print(key, over_pol, over_obj)
                 f.write("%s,%s,%s\n"%(key, over_pol, over_obj))
 
             

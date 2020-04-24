@@ -6,8 +6,8 @@ from app.hard_work import Hard_Work
 from app.forms import LoginForm, textInputForm, download_as_csv
 from app.models import Words, Sents
 from app import db
-import csv
-
+import json
+from pathlib import Path
 
 
 
@@ -37,7 +37,8 @@ def getPosts():
     ]
     random.shuffle(posts)
     return posts
-    
+
+
 @app.route('/', methods = ['GET', 'POST'])
 @app.route('/index', methods = ['GET', 'POST'])
 def index():
@@ -59,7 +60,10 @@ def index():
 
 @app.route('/api/get_sentiment', methods = ['GET'])
 def get_sentiment_document():
-    json_document = 0
+    path = str(Path.home())
+    filename = path + "/dataset2-0.json"
+    with open(filename, 'r') as file:
+        json_document = json.load(file)
     hardwork = Hard_Work([], [], 0, json_document, "api")
     polarity, subjectivity = hardwork.get_polarity_and_objectivity()
     return polarity, subjectivity
