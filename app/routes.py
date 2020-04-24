@@ -62,6 +62,10 @@ def index():
 def get_sentiment_document():
     path = str(Path.home())
     filename = path + "/dataset2-0.json"
+    #TODO: get json file as input
+    # so you're calling this with a json file
+    # and that file is used in here
+    
     with open(filename, 'r') as file:
         json_document = json.load(file)
     hardwork = Hard_Work([], [], 0, json_document, "api")

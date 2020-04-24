@@ -1,0 +1,36 @@
+{
+  "item": [
+    {
+      "date": "2017-05-05T20:49:35", 
+      "date_granularity": 12, 
+      "description": "Dan is het daar nog mooier...<div class=\"facebook-external-link\"><h6><a href=\"https://www.facebook.com/events/972015709568823/\">Zuiderzee Klassiek</a></h6><img src=\"https://scontent.xx.fbcdn.net/v/t1.0-0/c51.0.130.130/p130x130/18157072_1314512255269997_7965274480284293792_n.jpg?oh=7c5326fb5c1d51e60155c8b0a3d9d394&oe=5AC9D678\"><p>Op #Moederdag is het festival Zuiderzee Klassiek in het buitenmuseum. In de middag worden op mooie plekken in het buitenmuseum verschillende soorten klassieke muziek ten gehore gebracht door:\n- @[100007375020268:2048:Enno Voorhorst]\n- @[328784514135965:274:Het Vondel Ensemble]\n- Bella Cantara\n- Hedwig Brieffies\n- K.S.M. Music Stars\n- Voor de Wind\n- Anouk Overman\n\nMoeders hebben op 14 mei gratis entree tot het Zuiderzeemuseum!\n\nI.s.m. @[310766938958211:274:Stingray Brava]\n\nMeer informatie: http://bit.ly/2oSXaim</p><div class=\"clearfix\"></div></div>", 
+      "enrichments": {}, 
+      "location": "Enkhuizen", 
+      "meta": {
+        "_id": "c1a38d6becb7e92d06ed5901226eedee9b208181", 
+        "_index": "pfl_combined_index_fixed", 
+        "_score": 1.0, 
+        "_type": "item", 
+        "collection": "GroenLinks", 
+        "original_object_id": "131172784078979_165037064025884", 
+        "original_object_urls": {
+          "html": "https://www.facebook.com/bewegingENKHUIZEN/posts/165037064025884"
+        }, 
+        "pfl_url": "https://api.poliflw.nl/v0/groenlinks_fb_archives_bewegingENKHUIZEN/c1a38d6becb7e92d06ed5901226eedee9b208181", 
+        "processing_finished": "2018-01-10T23:58:08.816186", 
+        "processing_started": "2017-12-06T00:56:54.047900", 
+        "rights": "Undefined", 
+        "source_id": "groenlinks_fb_archives_bewegingENKHUIZEN"
+      }, 
+      "parties": [
+        "GroenLinks"
+      ], 
+      "source": "Facebook", 
+      "type": "Partij"
+    }
+  ], 
+  "meta": {
+    "took": 22, 
+    "total": 738434
+  }
+}
