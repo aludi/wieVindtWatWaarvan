@@ -326,12 +326,12 @@ def recurse_to_find_entity(chunk, head, first_noun, second_noun, verb_count, col
         #print("didn't find a noun")
         #print("look through children first")
         collected_words.append(chunk.text)
-        if chunk.pos_ == "VERB":
+        if chunk.pos_ == "VERB" and (chunk.dep_ != "aux" or chunk.dep_ != "cop"):
             verb_count += 1
         if verb_count > 1:
             return collected_words
 
-        if chunk.dep_ == "CONJ" and first_noun != 0:
+        if chunk.pos_ == "CONJ" and first_noun != 0:
             return collected_words
 
 
@@ -417,7 +417,7 @@ def calculate_status_of_message(max_tfidf_val, userTopics, relevantWords, title)
 
 
 def reverse_polarity_if_needed(list_of_string, polarity, sent):
-    polarity_reversers = ["risico"]
+    polarity_reversers = ["risico", "probleem", "problemen", "moeilijkheden"]
     if "niet" in list_of_string and "niet" not in sent: # the pl tagger missed a negation
         return -1
     if polarity > 0:    # "enorm risico" is negatief
@@ -494,7 +494,7 @@ def write_to_db(party, location, date, topics, title, corpus, entry, average_pol
             db.session.add(sent_entry_in_db)
 
 def attach_direct_list(relevantWords, total_list, collected_words, word, sentiment):
-    print("total list", total_list)
+    #print("total list", total_list)
     if not_a_filtered_expression(" ".join(total_list)):
         lemma = nlp(word)[0].lemma_
         if lemma in relevantWords.keys():    # we want to collect the lemmas as much as possible
@@ -561,7 +561,7 @@ def getSentiments(max_val_tf, relevantWords, text):
                         #word = collected_words[len(collected_words) - 1]
                         #print("\t", word , new_collected, sent)
                         if word != "":
-                            print(sentence)
+                            #print(sentence)
                             relevantWords = attach_direct_list(relevantWords, collected_words, new_collected, word, sentiment_chunk)
                 if flag == 1:
                     i += 1
@@ -603,9 +603,9 @@ def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_di
             print(title, polarity_status, objectivity_status)
         #print('\n')
         count += 1
-        if count > 3:
+        if count > 10:
+
             pass
-            #break
 
     if type_call == "flask":
         sentiments = Sents.query.all()
