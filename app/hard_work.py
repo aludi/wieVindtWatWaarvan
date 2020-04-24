@@ -20,6 +20,16 @@ except ModuleNotFoundError:
 
 nlp = nl_core_news_sm.load()
 
+class Hard_Work():
+    def __init__(self, corpus, topics, poliIter, local_call):
+        self.corpus = cleanUp(corpus)
+        self.topics = cleanUp(topics)
+        self.collection = collectDataPoliflw(self.corpus, poliIter)
+        self.idfDict, collection_dict = calculateIDF(self.collection, False, local_call)
+
+        self.local_call = local_call
+        mainLoop(self.collection, self.idfDict, self.topics, self.corpus, self.local_call, collection_dict)
+
 def loadAttributes(p, count):
     party = p["parties"][0]
     try:
@@ -34,7 +44,7 @@ def loadAttributes(p, count):
     text = p["description"]
     soup = BeautifulSoup(text, 'html.parser')
     text = soup.get_text().lower()
-    #text = '''Onder het motto: "Ook dit is kernenergie" geeft het A2-affiche een aantal redenen waarom kernenergie niet die veilige, schone energievorm is die ons onafhankelijker maakt van invoer van bijv. olie . '''
+    #text = '''Een nieuwe kerncentrale in het dorp? Dat nooit!'''
     try:
         topic = p["topics"]
     except KeyError:
@@ -53,12 +63,11 @@ def loadAttributes(p, count):
     print(count, title, party)
     return party, location, date, text, topic, title
 
-def cleanUp(incoming_text):
+def cleanUp(incoming_text): #splitting into list
     cleanList = incoming_text.split(', ')
-    #print(cleanList)
     return cleanList
     
-def collectDataPoliflw(userQueryTerms, maxVal):
+def collectDataPoliflw(userQueryTerms, maxVal): # query from poliflw database
     collection = []
     stringJoin = "|".join(userQueryTerms)
     if maxVal > 1000 or maxVal < 0:
@@ -73,10 +82,8 @@ def collectDataPoliflw(userQueryTerms, maxVal):
                                                                     },
                                                                      "from": i,
                                                                      "size": "100"})
-        #print(p.json())
         collection.append(p.json())
         i = i + 100
-
     return collection
 
 def computeFrequency(bag, num):
@@ -95,7 +102,7 @@ def addToIDF(idfDict, bag):
     return idfDict
 
 def stripTextOfAllPunct(text):
-    table = str.maketrans("","",string.punctuation)
+    table = str.maketrans({ord(ch): "" for ch in string.punctuation})
     strip = [t.translate(table) for t in text]
     return strip
 
@@ -106,34 +113,40 @@ def getCleanDocument(text):
     text = text.replace("\xa0", ' ')
     text = text.replace("’", '')
     text = text.replace(",", ' , ')
+    text = text.replace("‘", ' ')
     cleanDocument = text.lower().split(' ')
     cleanDocument = stripTextOfAllPunct(cleanDocument)
     #cleanDocument= "er zijn bakken met water aanwezig ."
     return cleanDocument
 
         
-def calculateIDF(collection):
+def calculateIDF(collection, calculate_own_idf, local_call):   # calculates IDF and loads in the documents
     idfDict = {}
     count = 0
-    #print(collection)
-    #print("\n")
     collection_dict = {}
     for entry in collection:
         try:
-            #print(entry)
-            #print(entry['item'])
             for p in entry['item']:
                 party, location, date, text, topic, title = loadAttributes(p, 0)
                 cleanDocument = getCleanDocument(text)
-                #print(cleanDocument)
                 collection_dict[title] = (party, location, date, cleanDocument, text, topic, title)
-                bagOfWords = cleanDocument
-                idfDict = addToIDF(idfDict, bagOfWords)
-                count += 1
+                if calculate_own_idf:
+                    bagOfWords = cleanDocument
+                    idfDict = addToIDF(idfDict, bagOfWords)
+                    count += 1
         except KeyError:
             pass
-    for word, val in idfDict.items():
-        idfDict[word] = math.log(count/float(val))
+    if calculate_own_idf:
+        for word, val in idfDict.items():
+            idfDict[word] = math.log(count/float(val))
+    else:
+        if local_call:
+            with open('idfDict.json', 'r') as fp:
+                idfDict = json.load(fp)
+        else:
+            with open('app/idfDict.json', 'r') as fp:
+                idfDict = json.load(fp)
+
     return idfDict, collection_dict
     
 def getTFIDF(cleanSentence, idfDict):
@@ -148,9 +161,13 @@ def getTFIDF(cleanSentence, idfDict):
     tfidf = {}
     max = -10
     for word, val in frequencyWordsInDoc.items():
-        tfidf[word] = val * idfDict[word]
-        if tfidf[word] > max:
-            max = tfidf[word]
+        try:
+            tfidf[word] = val * idfDict[word]
+            if tfidf[word] > max:
+                max = tfidf[word]
+        except KeyError:
+            print(word, "word is not in corpus, not a stopword, so just set it to val. This is not the correct way but it's fine")
+            tfidf[word] = val
     
     return tfidf, max
     
@@ -167,9 +184,6 @@ def getEntities(cleanSentence, tfidf, max):
         if w not in listSent and len(w) > 2 and len(w) < 25:
             relevantWords[w] = ([], [], tfidf[w])
             counter += 1
-        #if tfidf[w] < 2*(max/3):
-            #pass
-            #break
     return relevantWords
 
 def getRelevantTerms(relevantWords, userInput, tfidf):
@@ -203,14 +217,7 @@ def initialize_empty(item):
     return relevantWords
 
 
-class Hard_Work():
-    def __init__(self, corpus, topics, poliIter, local_call):
-        self.corpus = cleanUp(corpus)
-        self.topics = cleanUp(topics)
-        self.collection = collectDataPoliflw(self.corpus, poliIter)
-        self.idfDict, collection_dict = calculateIDF(self.collection)
-        self.local_call = local_call
-        mainLoop(self.collection, self.idfDict, self.topics, self.corpus, self.local_call, collection_dict)
+
         
 def not_a_filtered_expression(phrase):
     filteredList = ["huiselijk geweld", "doorgaande weg", "sociale huurwoningen", "sociale huurbouw", "publieke tribune", "hard gemaakt", "speciaal onderwijs", "provinciale staten",
@@ -304,7 +311,7 @@ def recurse_to_find_entity(chunk, head, first_noun, second_noun, verb_count, col
             return collected_words
 
 
-def classify_message_status( funct, ratio, average, median, stdev):
+def classify_message_status( funct, average, median, stdev):
     status = ""
     if funct == "polarity":
         if abs(median) - stdev < 0: # if you have a median of -0.3 and a std of 0.9, you have a mized story
@@ -331,68 +338,44 @@ def classify_message_status( funct, ratio, average, median, stdev):
             status = "SUBJECTIVE"
         elif median < 1:
             status = "VERY SUBJECTIVE"
-    print(status)
+    #print(status)
     return status
 
 
 def calculate_status_of_message(max_tfidf_val, userTopics, relevantWords, title):
-    dict_of_items = {"positive":0, "negative":0, "objective": 0, "subjective":0, "av_pol":[], "av_obj":[], "total":0}
+    average_polarity_message_list = []
+    average_objectivity_message_list = []
+
     for entry in relevantWords.keys():
         directList, contextList, tfidfVal = relevantWords[entry]
-        list_polarities = []
-        list_objectivities = []
-        list_words = []
-        if tfidfVal > max_tfidf_val/4 or entry in userTopics:
-            for tuple in directList:
-                a, b = tuple
-                direction = reverse_polarity_if_needed(a, b[1], b[0])
-                pol_word = direction*b[1]
-                obj_word = b[2]
-                if pol_word > 0.0:
-                    dict_of_items["positive"] += 1
-                elif pol_word < 0.0:
-                    dict_of_items["negative"] += 1
-                if pol_word != 0:
-                    dict_of_items["av_pol"].append(pol_word)
-                if obj_word < 0.5:
-                    dict_of_items["objective"] += 1
-                else:
-                    dict_of_items["subjective"] += 1
-                dict_of_items["av_obj"].append(obj_word)
-                dict_of_items["total"] += 1
-    print(dict_of_items["av_pol"])
+        list_polarities, list_objectivities, list_words = get_lists(directList, tfidfVal, max_tfidf_val, userTopics, entry)
+        average_polarity_message_list = average_polarity_message_list + list_polarities
+        average_objectivity_message_list = average_objectivity_message_list + list_objectivities
+
+    print(average_polarity_message_list, average_objectivity_message_list)
+
 
     # average:
-    average_pol = round(deal_with_empty_lists("mean", dict_of_items["av_pol"]), 2)
-    average_obj= round(deal_with_empty_lists("mean", dict_of_items["av_obj"]), 2)
+    average_pol = round(deal_with_empty_lists("mean", average_polarity_message_list), 2)
+    average_obj = round(deal_with_empty_lists("mean", average_objectivity_message_list), 2)
 
-    stdev_pol = round(deal_with_empty_lists("sdev", dict_of_items["av_pol"]), 2)
-    stdev_obj= round(deal_with_empty_lists("sdev", dict_of_items["av_obj"]), 2)
+    stdev_pol = round(deal_with_empty_lists("sdev", average_polarity_message_list), 2)
+    stdev_obj = round(deal_with_empty_lists("sdev", average_objectivity_message_list), 2)
 
-    mode_pol = round(deal_with_empty_lists("mode", dict_of_items["av_pol"]), 2)
-    mode_obj = round(deal_with_empty_lists("mode", dict_of_items["av_obj"]), 2)
+    med_pol = round(deal_with_empty_lists("median", average_polarity_message_list), 2)
+    med_obj = round(deal_with_empty_lists("median", average_objectivity_message_list), 2)
 
-    med_pol = round(deal_with_empty_lists("median", dict_of_items["av_pol"]), 2)
-    med_obj = round(deal_with_empty_lists("median", dict_of_items["av_obj"]), 2)
 
-    #ratio
-    if dict_of_items["total"] > 0:
-        ratio_pol_pos = round(dict_of_items["positive"] / dict_of_items["total"], 2)
-        ratio_obj = round(dict_of_items["objective"] / dict_of_items["total"], 2)
-    else:
-        ratio_pol_pos = 0
-        ratio_obj = 0
     print("average of article: ", average_pol, average_obj)
     print("median of article: ", med_pol, med_obj)
     print("standard dev: ", stdev_pol, stdev_obj)
-    print("ratio of article: ", ratio_pol_pos, ratio_obj, "out of a total: ", dict_of_items["total"])
+
     if med_pol == 0 and med_obj == 0 and stdev_pol == 0 and stdev_obj == 0:
         polarity_status = "NO SENTIMENT"
         objectivity_status = "NO SENTIMENT"
     else:
-        polarity_status = classify_message_status("polarity", ratio_pol_pos, average_pol, med_pol, stdev_pol)
-        objectivity_status = classify_message_status("objectivity", ratio_obj, average_obj, med_obj, stdev_obj)
-
+        polarity_status = classify_message_status("polarity", average_pol, med_pol, stdev_pol)
+        objectivity_status = classify_message_status("objectivity", average_obj, med_obj, stdev_obj)
     return polarity_status, objectivity_status
 
 
@@ -429,14 +412,12 @@ def deal_with_empty_lists(statistic, list_sentiment):
     elif statistic == "median":
         return statistics.median(list_sentiment)
 
-def get_lists(directList, tfidfVal, max_tfidf_val):
-    average_polarity_word = 0
-    average_objectivity_word = 0
-    # print(entry, relevantWords[entry])
+def get_lists(directList, tfidfVal, max_tfidf_val, userTopics, entry):
     list_polarities = []
     list_objectivities = []
     list_words = []
-    if tfidfVal > max_tfidf_val / 4 or entry in topics:
+
+    if tfidfVal >= 0.01 or entry in userTopics:
         for tuple in directList:
             a, b = tuple
             # print("a: ",a, "b: ", b)
@@ -452,9 +433,10 @@ def get_lists(directList, tfidfVal, max_tfidf_val):
 def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus, local_call, max_tfidf_val):
     party, location, date, cleanDocument, text, topic, title = text_attributes_collection
     attached_count = 0
+    print(max_tfidf_val)
     for entry in relevantWords.keys():
         directList, contextList, tfidfVal = relevantWords[entry]
-        list_polarities, list_objectivities, list_words = get_lists(directList, tfidfVal, max_tfidf_val)
+        list_polarities, list_objectivities, list_words = get_lists(directList, tfidfVal, max_tfidf_val, topics, entry)
         average_polarity_word = int(deal_with_empty_lists("mean", list_polarities) * 100)
         average_objectivity_word = int(deal_with_empty_lists("mean", list_objectivities) * 100)
         if average_polarity_word != 0 or average_objectivity_word != 0:
@@ -526,7 +508,7 @@ def getSentiments(max_val_tf, relevantWords, text):
                     if i == 2 and 'niet' not in sent:
                         missed_negation = ["niet"]
                     else:
-                        missed_negation= [""]
+                        missed_negation = [""]
                     new_collected = missed_negation + sent
                     if 'naar' not in sent:
                         word = ""
@@ -560,7 +542,7 @@ def mainLoop(collection, idfDict, topics, corpus, local_call, collection_dict):
         (party, location, date, cleanDocument, text, topic, title) = collection_dict[item]
         print("\t", title)
         tfidf, max = getTFIDF(cleanDocument, idfDict)
-        #print("MAX:", max)
+        print("MAX:", max)
         entities = getEntities(cleanDocument, tfidf, max)
         # print("ENTITIES", entities)
         relevantWords = getRelevantTerms(entities, userTopics, tfidf)  # TODO: look at this
@@ -571,7 +553,8 @@ def mainLoop(collection, idfDict, topics, corpus, local_call, collection_dict):
         get_values_for_row(relevantWords, collection_dict[item], userTopics, corpus, local_call, max)
         polarity_status, objectivity_status = calculate_status_of_message(max, userTopics, relevantWords, title)
         dict_of_status[title] = (polarity_status, objectivity_status)
-        print('\n')
+        #print('\n')
+        #break
 
     if not local_call:
         sentiments = Sents.query.all()
@@ -583,7 +566,9 @@ def mainLoop(collection, idfDict, topics, corpus, local_call, collection_dict):
         with open('text.csv', 'w') as f:
             for key in dict_of_status.keys():
                 over_pol, over_obj = dict_of_status[key]
+                print(over_pol, over_obj)
                 f.write("%s,%s,%s\n"%(key, over_pol, over_obj))
+        print("NEW CSV")
 
             
             
