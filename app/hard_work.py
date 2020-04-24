@@ -22,13 +22,11 @@ nlp = nl_core_news_sm.load()
 
 class Hard_Work():
     def __init__(self, corpus, topics, poliIter, json_doc, call_type):
+        self.verbose_dict = {"entity":[], "polarity": [], "objectivity": [], "fragment": []}
         self.polarity = "0"
         self.objectivity = "0"
         if call_type == 'api':
-            print("to implement")
-
             collection = [json_doc]
-            #collection = json_doc
             pass
         if call_type == 'local' or call_type == 'flask':
             corpus = cleanUp(corpus)
@@ -41,8 +39,23 @@ class Hard_Work():
         self.polarity = pol_class
         self.objectivity = obj_class
 
+
+    def set_polarity_and_objectivity(self, pol_class, obj_class):
+        self.polarity = pol_class
+        self.objectivity = obj_class
+
     def get_polarity_and_objectivity(self):
         return(self.polarity, self.objectivity)
+
+    def update_verbose_dict(self, entity, polarity, objectivity, fragment):
+        self.verbose_dict["entity"].append(entity)
+        self.verbose_dict["polarity"].append(polarity)
+        self.verbose_dict["objectivity"].append(objectivity)
+        self.verbose_dict["fragment"].append(fragment)
+
+    def get_verbose_dict(self):
+        return self.verbose_dict
+
 
 def loadAttributes(p, count):
     party = p["parties"][0]
@@ -385,13 +398,13 @@ def calculate_status_of_message(max_tfidf_val, userTopics, relevantWords, title)
     med_obj = round(deal_with_empty_lists("median", average_objectivity_message_list), 2)
 
 
-    '''print("average of article: ", average_pol, average_obj)
+    print("average of article: ", average_pol, average_obj)
     print("median of article: ", med_pol, med_obj)
-    print("standard dev: ", stdev_pol, stdev_obj)'''
+    print("standard dev: ", stdev_pol, stdev_obj)
 
     if med_pol == 0 and med_obj == 0 and stdev_pol == 0 and stdev_obj == 0:
-        polarity_status = "NO SENTIMENT"
-        objectivity_status = "NO SENTIMENT"
+        polarity_status = "GEEN POLARITEIT"
+        objectivity_status = "GEEN OBJECTIVITEIT"
     else:
         polarity_status = classify_message_status("polarity", average_pol, med_pol, stdev_pol)
         objectivity_status = classify_message_status("objectivity", average_obj, med_obj, stdev_obj)
@@ -449,7 +462,7 @@ def get_lists(directList, tfidfVal, max_tfidf_val, userTopics, entry):
     return list_polarities, list_objectivities, list_words
 
 
-def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus, type_call, max_tfidf_val):
+def get_values_for_row(self, relevantWords, text_attributes_collection, topics, corpus, type_call, max_tfidf_val):
     party, location, date, cleanDocument, text, topic, title = text_attributes_collection
     attached_count = 0
     #print(max_tfidf_val)
@@ -460,9 +473,11 @@ def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus
         average_objectivity_word = int(deal_with_empty_lists("mean", list_objectivities) * 100)
         if average_polarity_word != 0 or average_objectivity_word != 0:
             attached_count += len(list_words)
-            #print("\t", entry, party, average_polarity_word, average_objectivity_word, list_words, tfidfVal )
-            if type_call == 'api' or type_call == 'local':
+            print("\t", entry, party, average_polarity_word, average_objectivity_word, list_words, tfidfVal )
+            if type_call == 'local':
                 pass
+            elif type_call == 'api':
+                self.update_verbose_dict(entry, average_polarity_word, average_objectivity_word, list_words)
             else:
                 write_to_db(party, location, date, topics, title, corpus, entry, average_polarity_word, average_objectivity_word, list_words)
     #print("ATTACHED COUNT", attached_count)
@@ -572,7 +587,7 @@ def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_di
         # print(taggedText)
         relevantWords = getSentiments(max, relevantWords, taggedText)
         #print(relevantWords)
-        get_values_for_row(relevantWords, collection_dict[item], userTopics, corpus, type_call, max)
+        get_values_for_row(self, relevantWords, collection_dict[item], userTopics, corpus, type_call, max)
         polarity_status, objectivity_status = calculate_status_of_message(max, userTopics, relevantWords, title)
         dict_of_status[title] = (polarity_status, objectivity_status)
         if type_call == 'api':

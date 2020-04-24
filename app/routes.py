@@ -1,6 +1,6 @@
 from app import app
 import time
-from flask import render_template, flash, redirect, url_for, send_file, Response
+from flask import render_template, flash, redirect, url_for, send_file, Response, request
 import random as random
 from app.hard_work import Hard_Work
 from app.forms import LoginForm, textInputForm, download_as_csv
@@ -58,19 +58,27 @@ def index():
         return redirect(url_for("outcome"))
     return render_template('index.html', title='run', form=form, user=user, posts=posts)
 
-@app.route('/api/get_sentiment', methods = ['GET'])
+
+@app.route('/api/get_sentiment', methods=['POST', 'GET'])
 def get_sentiment_document():
-    path = str(Path.home())
-    filename = path + "/dataset2-0.json"
-    #TODO: get json file as input
-    # so you're calling this with a json file
-    # and that file is used in here
-    
-    with open(filename, 'r') as file:
-        json_document = json.load(file)
+    if request.method == 'POST':
+        json_document = request.get_json(force=True)
     hardwork = Hard_Work([], [], 0, json_document, "api")
     polarity, subjectivity = hardwork.get_polarity_and_objectivity()
-    return polarity, subjectivity
+    return '{} {}'.format(polarity, subjectivity)
+
+
+@app.route('/api/get_sentiment_verbose', methods=['POST', 'GET'])   # this one also returns the terms and sentence fragments that led to the classification
+def get_sentiment_document_verbose():
+    if request.method == 'POST':
+        json_document = request.get_json(force=True)
+    hardwork = Hard_Work([], [], 0, json_document, "api")
+    polarity, subjectivity = hardwork.get_polarity_and_objectivity()
+    dict_of_entities = hardwork.get_verbose_dict()
+    formatted_string_of_entities = "\n"
+    for row in zip(*dict_of_entities.values()):
+        formatted_string_of_entities = formatted_string_of_entities + str(row) + "\n"
+    return '{} {} {}'.format(polarity, subjectivity, formatted_string_of_entities)
 
     
     
