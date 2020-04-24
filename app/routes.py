@@ -6,37 +6,6 @@ from app.hard_work import Hard_Work
 from app.forms import LoginForm, textInputForm, download_as_csv
 from app.models import Words, Sents
 from app import db
-import json
-from pathlib import Path
-
-
-
-def getPosts():
-    colors = ["tomato", "orange","slateblue", "powderblue", "darkturquoise", "coral", "indianred", "steelblue"]
-
-    posts = [
-    {
-        'author':'huib',
-        'book': 'het is oorlog maar niemand die het ziet',
-        'rating':'3.5/5',
-        'color': colors[random.randint(1,len(colors)-1)]
-    },
-    {
-        'author':'nick',
-        'book':'superintelligence',
-        'rating':'4/5',
-        'color': colors[random.randint(1,len(colors)-1)]
-    },
-    {
-        'author':'max',
-        'book':'life 3.0',
-        'rating':'incomplete',
-        'color': colors[random.randint(0,len(colors)-1)]
-    
-    }
-    ]
-    random.shuffle(posts)
-    return posts
 
 
 @app.route('/', methods = ['GET', 'POST'])
@@ -48,7 +17,6 @@ def index():
         db.session.delete(sents_on_ents)
     db.session.commit()
     user = "friend"
-    posts = getPosts()
     form = textInputForm()
     if form.validate_on_submit():
         flash('running code')
@@ -89,19 +57,7 @@ def login():
         flash('Login for user {}, remember_me={}'.format(form.username.data, form.remember_me.data))
         return redirect(url_for("index"))
     return render_template('login.html', title='Sign In', form=form)
-    
-    
-@app.route('/processing', methods = ['GET', 'POST'])
-def processing():
-    startTime = time.time()
-    print(Words().query.all())
 
-    '''
-    if startTime-time.time() > poliIter*60:
-        return redirect(url_for('outcome'))
-    else:
-        return render_template('processing.html', title='processing')
-    '''
 
 @app.route('/outcome', methods = ['POST', 'GET'])
 def outcome():
@@ -120,7 +76,6 @@ def raw_data():
     form = download_as_csv()
     if form.validate_on_submit():
         return redirect(url_for('download_data'))
-
     relevantList = []
     words = Words().query.all()
     for w in words:

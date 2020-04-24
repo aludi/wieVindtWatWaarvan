@@ -253,10 +253,10 @@ def initialize_empty(item):
 def not_a_filtered_expression(phrase):
     filteredList = ["huiselijk geweld", "doorgaande weg", "sociale huurwoningen", "sociale huurbouw", "publieke tribune", "hard gemaakt", "speciaal onderwijs", "provinciale staten",
                     "vinger aan de pols", "schoon genoeg"]
-    if phrase in filteredList:
-        return False
-    else:
-        return True
+    for item in filteredList:
+        if item in phrase:
+            return False
+    return True
 
 def run_test_set():
     print("\n\n")
@@ -330,6 +330,11 @@ def recurse_to_find_entity(chunk, head, first_noun, second_noun, verb_count, col
             verb_count += 1
         if verb_count > 1:
             return collected_words
+
+        if chunk.dep_ == "CONJ" and first_noun != 0:
+            return collected_words
+
+
         for child in chunk.children:
             if child.text not in collected_words and child.text.upper() not in collected_words:
                 return recurse_to_find_entity(child, head, first_noun, second_noun, verb_count, collected_words)
@@ -489,6 +494,7 @@ def write_to_db(party, location, date, topics, title, corpus, entry, average_pol
             db.session.add(sent_entry_in_db)
 
 def attach_direct_list(relevantWords, total_list, collected_words, word, sentiment):
+    print("total list", total_list)
     if not_a_filtered_expression(" ".join(total_list)):
         lemma = nlp(word)[0].lemma_
         if lemma in relevantWords.keys():    # we want to collect the lemmas as much as possible
@@ -503,6 +509,16 @@ def attach_direct_list(relevantWords, total_list, collected_words, word, sentime
                 pass
             #print("adding word: ", word, collected_words)
     return relevantWords
+
+def get_sentiments_from_text_chunk(sentiments_in_sentence, text):
+    res = [val for key, val in sentiments_in_sentence.items() if text in key]
+    return res[0]
+
+def find_missed_negation(i, sent_words):
+    if (i == 2 or i == 3) and 'niet' not in sent_words:
+        return ["niet"]
+    else:
+        return [""]
 
         
 def getSentiments(max_val_tf, relevantWords, text):
@@ -523,28 +539,20 @@ def getSentiments(max_val_tf, relevantWords, text):
         if not sentiments_in_sentence:
             pass
         else:
-            i = 0
-            flag = 0
+            i, flag = 0, 0
             #print("before chunk", sentiments_in_sentence_list)
             for chunk in nlp(sentence):
-                if chunk.text == 'niet':
-                    # we found a negation
+                if chunk.text == 'niet': # we found a negation
                     flag = 1
                 #print(chunk.text, chunk.dep_, chunk.pos_, sentiments_in_sentence_list)
                 if chunk.text in sentiments_in_sentence_list and chunk.dep_ not in ['case', 'mark', 'advcl'] and chunk.pos_ not in ["VERB"]:
                     #print(chunk.text, chunk.pos_, chunk.dep_, "in here")
-                    res = [val for key, val in sentiments_in_sentence.items() if chunk.text in key]
-                    #print(res)
-                    tuple = res[0]
-                    sent, a, b, c = tuple
+                    sentiment_chunk = get_sentiments_from_text_chunk(sentiments_in_sentence, chunk.text)
                     collected_words = recurse_to_find_entity(chunk, 0, 0, 0, 0, [])
                     #print(collected_words)
-                    if i == 2 and 'niet' not in sent:
-                        missed_negation = ["niet"]
-                    else:
-                        missed_negation = [""]
-                    new_collected = missed_negation + sent
-                    if 'naar' not in sent:
+                    missed_negation = find_missed_negation(i, sentiment_chunk[0])
+                    new_collected = missed_negation + sentiment_chunk[0]
+                    if 'naar' not in sentiment_chunk[0]:
                         word = ""
                         for item in collected_words:
                             if item.isupper():
@@ -553,8 +561,8 @@ def getSentiments(max_val_tf, relevantWords, text):
                         #word = collected_words[len(collected_words) - 1]
                         #print("\t", word , new_collected, sent)
                         if word != "":
-                            relevantWords = attach_direct_list(relevantWords, collected_words, new_collected, word, tuple)
-                    #print(relevantWords[word])
+                            print(sentence)
+                            relevantWords = attach_direct_list(relevantWords, collected_words, new_collected, word, sentiment_chunk)
                 if flag == 1:
                     i += 1
     #print("SENTIMENT COUNT: ", sentiment_count)
@@ -594,7 +602,10 @@ def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_di
             self.set_polarity_and_objectivity(polarity_status, objectivity_status)
             print(title, polarity_status, objectivity_status)
         #print('\n')
-        #break
+        count += 1
+        if count > 3:
+            pass
+            #break
 
     if type_call == "flask":
         sentiments = Sents.query.all()
