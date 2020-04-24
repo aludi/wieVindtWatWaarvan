@@ -57,6 +57,13 @@ def index():
         return redirect(url_for("outcome"))
     return render_template('index.html', title='run', form=form, user=user, posts=posts)
 
+@app.route('/api/get_sentiment', methods = ['GET'])
+def get_sentiment_document():
+    json_document = 0
+    hardwork = Hard_Work([], [], 0, json_document, "api")
+    polarity, subjectivity = hardwork.get_polarity_and_objectivity()
+    return polarity, subjectivity
+
     
     
 @app.route('/login', methods = ['GET', 'POST'])
@@ -89,7 +96,7 @@ def outcome():
         for searchPairs in Words().query.all():
             corpus, topic, poliIter = searchPairs.corpus_words_raw, searchPairs.topic_words_raw, searchPairs.max_texts
         flash("searching for topics {} in corpus {}...".format(corpus, topic))
-        hardwork = Hard_Work(corpus, topic, poliIter, False)
+        hardwork = Hard_Work(corpus, topic, poliIter, 0, "flask")
         return render_template('outcome.html', title='Output', form=form)
 
 @app.route('/raw_data',  methods = ['POST', 'GET'])

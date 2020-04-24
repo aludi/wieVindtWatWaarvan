@@ -21,14 +21,26 @@ except ModuleNotFoundError:
 nlp = nl_core_news_sm.load()
 
 class Hard_Work():
-    def __init__(self, corpus, topics, poliIter, local_call):
-        self.corpus = cleanUp(corpus)
-        self.topics = cleanUp(topics)
-        self.collection = collectDataPoliflw(self.corpus, poliIter)
-        self.idfDict, collection_dict = calculateIDF(self.collection, False, local_call)
+    def __init__(self, corpus, topics, poliIter, json_doc, call_type):
+        self.polarity = "0"
+        self.objectivity = "0"
+        if call_type == 'api':
+            print("to implement")
+            collection = json_doc
+            pass
+        if call_type == 'local' or call_type == 'flask':
+            corpus = cleanUp(corpus)
+            topics = cleanUp(topics)
+            collection = collectDataPoliflw(corpus, poliIter)
+        idfDict, collection_dict = calculateIDF(collection, False, call_type)
+        mainLoop(self, collection, idfDict, topics, corpus, call_type, collection_dict)
 
-        self.local_call = local_call
-        mainLoop(self.collection, self.idfDict, self.topics, self.corpus, self.local_call, collection_dict)
+    def set_polarity_and_objectivity(self, pol_class, obj_class):
+        self.polarity = pol_class
+        self.objectivity = obj_class
+
+    def get_polarity_and_objectivity(self):
+        return(self.polarity, self.objectivity)
 
 def loadAttributes(p, count):
     party = p["parties"][0]
@@ -120,7 +132,7 @@ def getCleanDocument(text):
     return cleanDocument
 
         
-def calculateIDF(collection, calculate_own_idf, local_call):   # calculates IDF and loads in the documents
+def calculateIDF(collection, calculate_own_idf, type_call):   # calculates IDF and loads in the documents
     idfDict = {}
     count = 0
     collection_dict = {}
@@ -140,10 +152,10 @@ def calculateIDF(collection, calculate_own_idf, local_call):   # calculates IDF 
         for word, val in idfDict.items():
             idfDict[word] = math.log(count/float(val))
     else:
-        if local_call:
+        if type_call == 'local':
             with open('idfDict.json', 'r') as fp:
                 idfDict = json.load(fp)
-        else:
+        elif type_call == 'api' or type_call == 'flask':
             with open('app/idfDict.json', 'r') as fp:
                 idfDict = json.load(fp)
 
@@ -430,7 +442,7 @@ def get_lists(directList, tfidfVal, max_tfidf_val, userTopics, entry):
     return list_polarities, list_objectivities, list_words
 
 
-def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus, local_call, max_tfidf_val):
+def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus, type_call, max_tfidf_val):
     party, location, date, cleanDocument, text, topic, title = text_attributes_collection
     attached_count = 0
     print(max_tfidf_val)
@@ -442,7 +454,7 @@ def get_values_for_row(relevantWords, text_attributes_collection, topics, corpus
         if average_polarity_word != 0 or average_objectivity_word != 0:
             attached_count += len(list_words)
             print("\t", entry, party, average_polarity_word, average_objectivity_word, list_words, tfidfVal )
-            if local_call:
+            if type_call == 'api' or type_call == 'local':
                 pass
             else:
                 write_to_db(party, location, date, topics, title, corpus, entry, average_polarity_word, average_objectivity_word, list_words)
@@ -527,7 +539,7 @@ def getSentiments(max_val_tf, relevantWords, text):
     return relevantWords
 
     
-def mainLoop(collection, idfDict, topics, corpus, local_call, collection_dict):
+def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_dict):
     #print(topics, corpus, type(topics), type(corpus))
     if topics[0] != '':
         userTopics = corpus
@@ -550,25 +562,26 @@ def mainLoop(collection, idfDict, topics, corpus, local_call, collection_dict):
         # print(taggedText)
         relevantWords = getSentiments(max, relevantWords, taggedText)
         #print(relevantWords)
-        get_values_for_row(relevantWords, collection_dict[item], userTopics, corpus, local_call, max)
+        get_values_for_row(relevantWords, collection_dict[item], userTopics, corpus, type_call, max)
         polarity_status, objectivity_status = calculate_status_of_message(max, userTopics, relevantWords, title)
         dict_of_status[title] = (polarity_status, objectivity_status)
+        if type_call == 'api':
+            self.set_polarity_and_objectivity(polarity_status, objectivity_status)
         #print('\n')
         #break
 
-    if not local_call:
+    if type_call == "flask":
         sentiments = Sents.query.all()
         for x in sentiments:
             print(x.id, x.corpus, x.entity, x.polarity, x.objectivity, x.direct_words)
         db.session.commit()
-    else:
+    elif type_call == "local":
         import csv
         with open('text.csv', 'w') as f:
             for key in dict_of_status.keys():
                 over_pol, over_obj = dict_of_status[key]
                 print(over_pol, over_obj)
                 f.write("%s,%s,%s\n"%(key, over_pol, over_obj))
-        print("NEW CSV")
 
             
             
