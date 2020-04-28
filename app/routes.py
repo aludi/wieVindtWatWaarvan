@@ -20,7 +20,7 @@ def index():
     user = "friend"
     form = textInputForm()
     if form.validate_on_submit():
-        flash('running code')
+        #flash('running code')
         words = Words(corpus_words_raw=form.corpus_words.data, topic_words_raw=form.topic_words.data, max_texts=form.max_val.data)
         db.session.add(words)
         db.session.commit()
@@ -68,7 +68,7 @@ def outcome():
     else:
         for searchPairs in Words().query.all():
             corpus, topic, poliIter = searchPairs.corpus_words_raw, searchPairs.topic_words_raw, searchPairs.max_texts
-        flash("searching for topics {} in corpus {}...".format(corpus, topic))
+        flash("Gezocht op onderwerpen {} in corpus {}...".format(corpus, topic))
         hardwork = Hard_Work(corpus, topic, poliIter, 0, "flask")
         return render_template('outcome.html', title='Output', form=form)
 
@@ -82,7 +82,7 @@ def raw_data():
     for w in words:
         relevantList.append(w.corpus_words_raw)
         relevantList.append(w.topic_words_raw)
-    print(relevantList)
+    #print(relevantList)
     rel_items = []
     for sents_on_ents in Sents().query.all():
         if sents_on_ents.entity in relevantList:

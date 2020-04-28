@@ -5,11 +5,11 @@
 
 
 {% block content %}
-<h2> Sentimenten op de directe zoekvraag (voor meer uitgebreide resultaten, zie de csv file)</h2>
-<h4> Wil je ook de .csv file downloaden?</h4>
+<h4> Sentimenten op de directe zoekvraag:</h4>
+
 
 <table>
-        <tr>
+        <tr style = "color:#035C6E">
             <th> Titel artikel </th>
             <th> Partij </th>
             <th> Onderwerp </th>
@@ -28,6 +28,8 @@
         </tr>
     {% endfor %}
 </table>
+
+<h4> Wil je ook de .csv file downloaden?</h4>
 {{title_doc}}
 <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}

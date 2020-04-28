@@ -3,8 +3,11 @@
 {% block content %}
 
  <div class="container">
-        <h3>Success!</h3>
+        <h3>Succes!</h3>
 
+<h4> Wil je een stukje van de ruwe data zien voordat je de csv download?
+<a href="{{url_for('raw_data')}}">Klik hier!</a>
+</h4>
 
 <h4> Wil je de .csv file downloaden? </h4>
 <form action="" method="post" novalidate>
@@ -13,9 +16,7 @@
 </form>
 
 
-<h4> Wil je de ruwe data zien voordat je de csv download?
-<a href="{{url_for('raw_data')}}">Klik hier!</a>
-</h4>
+
  </div>
 
 <!---
