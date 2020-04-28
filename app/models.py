@@ -22,7 +22,7 @@ class Post(db.Model):
     def __repr__(self):
         return '<Post {}>'.format(self.book)
         
-         
+
 class Words(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     corpus_words_raw = db.Column(db.String(200))
@@ -31,7 +31,7 @@ class Words(db.Model):
         
     def __repr__(self):
         return '<Query on topic {} in corpus {}>'.format(self.topic_words_raw, self.corpus_words_raw)
-        
+
         
 class Sents(db.Model):
     id = db.Column(db.Integer, primary_key=True)

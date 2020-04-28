@@ -8,9 +8,31 @@
 <h2> Sentimenten op de directe zoekvraag (voor meer uitgebreide resultaten, zie de csv file)</h2>
 <h4> Wil je ook de .csv file downloaden?</h4>
 
+<table>
+        <tr>
+            <th> Titel artikel </th>
+            <th> Partij </th>
+            <th> Onderwerp </th>
+            <th> Polariteit </th>
+            <th> Objectiviteit </th>
+            <th> Context </th>
+        </tr>
+    {% for item in relevant_items%}
+        <tr>
+            <td> {{item.title_doc}}</td>
+            <td> {{item.party}}</td>
+            <td> {{item.entity}}</td>
+            <td> {{item.polarity}}</td>
+            <td> {{item.objectivity}}</td>
+            <td> {{item.words}}</td>
+        </tr>
+    {% endfor %}
+</table>
+{{title_doc}}
 <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
         <p>{{ form.submit() }}</p>
+
 </form>
 
 {% endblock %}

@@ -5,6 +5,7 @@ import random as random
 from app.hard_work import Hard_Work
 from app.forms import LoginForm, textInputForm, download_as_csv
 from app.models import Words, Sents
+#from app.models import Sents
 from app import db
 
 
@@ -24,7 +25,7 @@ def index():
         db.session.add(words)
         db.session.commit()
         return redirect(url_for("outcome"))
-    return render_template('index.html', title='run', form=form, user=user, posts=posts)
+    return render_template('index.html', title='run', form=form, user=user)
 
 
 @app.route('/api/get_sentiment', methods=['POST', 'GET'])
@@ -82,13 +83,18 @@ def raw_data():
         relevantList.append(w.corpus_words_raw)
         relevantList.append(w.topic_words_raw)
     print(relevantList)
+    rel_items = []
     for sents_on_ents in Sents().query.all():
         if sents_on_ents.entity in relevantList:
-            flash("In article {} by {}, found sentiments polarity {} objectivity {} on entity \"{}\" through words \'{}\' ".format(
-                    sents_on_ents.title, sents_on_ents.parties, sents_on_ents.polarity, sents_on_ents.objectivity,
-                    sents_on_ents.entity.upper(), sents_on_ents.direct_words))
+            #flash("In article {} by {}, found sentiments polarity {} objectivity {} on entity \"{}\" through words \'{}\' ".format(
+            #        sents_on_ents.title, sents_on_ents.parties, sents_on_ents.polarity, sents_on_ents.objectivity,
+            #        sents_on_ents.entity, sents_on_ents.direct_words))
+            rel_items.append({'title_doc': sents_on_ents.title, 'party': sents_on_ents.parties, 'polarity': sents_on_ents.polarity,
+                              'objectivity': sents_on_ents.objectivity,
+                              'entity': sents_on_ents.entity,
+                              'words': sents_on_ents.direct_words})
 
-    return render_template('raw_data.html', title='ruwe data', form=form)
+    return render_template('raw_data.html', title='ruwe data', form=form, relevant_items=rel_items)
 
 @app.route('/download_data', methods = ['POST', 'GET'])
 def download_data():
