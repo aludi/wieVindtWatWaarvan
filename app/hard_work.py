@@ -613,7 +613,6 @@ def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_di
             print(x.id, x.corpus, x.entity, x.polarity, x.objectivity, x.direct_words)
         db.session.commit()
     elif type_call == "local":
-        import csv
         with open('text.csv', 'w') as f:
             for key in dict_of_status.keys():
                 over_pol, over_obj = dict_of_status[key]

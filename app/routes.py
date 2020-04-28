@@ -86,9 +86,6 @@ def raw_data():
     rel_items = []
     for sents_on_ents in Sents().query.all():
         if sents_on_ents.entity in relevantList:
-            #flash("In article {} by {}, found sentiments polarity {} objectivity {} on entity \"{}\" through words \'{}\' ".format(
-            #        sents_on_ents.title, sents_on_ents.parties, sents_on_ents.polarity, sents_on_ents.objectivity,
-            #        sents_on_ents.entity, sents_on_ents.direct_words))
             rel_items.append({'title_doc': sents_on_ents.title, 'party': sents_on_ents.parties, 'polarity': sents_on_ents.polarity,
                               'objectivity': sents_on_ents.objectivity,
                               'entity': sents_on_ents.entity,
