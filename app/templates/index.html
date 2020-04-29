@@ -2,7 +2,7 @@
 
 {% block content %}
 
-        <p> Op deze pagina kan je in Poliflw (TODO: link) zoeken op specifieke onderwerpen in de berichtgeving
+        <p> Op deze pagina kan je in <a href="https://poliflw.nl">Poliflw</a> zoeken op specifieke onderwerpen in de berichtgeving
         van verschillende locale politieke partijen. Op de berichten die hieruit komen wordt een geautomatiseerde
         sentiment-analyse gedaan. Zo kun je zien wat voor soort woorden worden gebruikt om bepaalde onderwerpen te bescrhijven,
             en hoe sterk de sentimenten zijn.
@@ -21,7 +21,7 @@
                 {{ form.corpus_words(size=200)}}
             </p>
             <p> Hoeveel berichten wil je doorzoeken? (minimaal 100)</p>
-            <p><small><i> Het duurt ongeveer 1.5 minuten per 100 berichten.</i></small></p>
+            <small><i> Het duurt ongeveer 0.5 minuten per 100 berichten.</i></small>
 
             <p>
                 {{ form.max_val.label }}<br>
@@ -29,7 +29,7 @@
             </p>
             
             <p> Optioneel: geef ook de sentimenten op specieke onderwerpen binnen de documenten </p>
-            <p><small><i> (Met komma's ertussen)</i></small></p>
+             <small><i> (Met komma's ertussen)</i></small>
 
             <p>
                 {{ form.topic_words.label }}<br>

@@ -2,16 +2,49 @@
 
 {% block content %}
 
+<p> Hieronder staan wat voorbeelden van wat je kan doen met de data die uit deze tool komt. Deze grafieken zijn gemaakt
+    met behulp van de ggplot module in R, op basis van de resultaten van verschillende zoektermen.
+Heb jij ook iets uitgevonden met deze tool? Laat het me weten op <a href ="https://github.com/aludi/wieVindtWatWaarvan"> GitHub</a>! </p>
+
+
+<h4> Corona </h4>
+
+ <img style="class:center"; src="/static/images/plots/corona.png", width="100%", height="100%">
 <p>
-[TODO]
+Deze tool kan ook gebruikt worden als je je afvraagt hoe politiek taalgebruik nu eigenlijk verandert over tijd.
+    Hoe vaak hebben we het nou eigenlijk over het “coronavirus”, in vergelijking met “corona”, of “virus”? “Coronavirus” klinkt,
+    in mijn oren tenminste, als een oude term. Als we het nu hebben over “het virus”, of “corona”, weet iedereen ook waar we het over hebben.
+    Misschien komt dit ook terug in de data?
+In dit plot zien we een steekproef van 200 berichten als we op Poliflw zoeken naar ‘corona, coronavirus, virus’.
+    De kleur van elk datapunt geeft aan welke term gebruikt wordt, met de context erbij. Wat ik zie in dit plot,
+    is hoe vanaf begin april, de term ‘coronavirus’ wordt ondergesneeuwd door ‘corona’ en ‘virus’. Het kan natuurlijk
+    zijn dat dit een ‘sampling bias’ is. Hiervoor is verder onderzoek nodig.
+
 </p>
+
+<h4> Energie-opwekking </h4>
 
  <img style="class:center"; src="/static/images/plots/Rplot04.png", width="100%", height="100%">
-
-
 <p>
-In deze TEST-plot kan je het sentiment over tijd zien op verschillende energie-bronnen.
-    Het sentiment op kerncentrales daalt over tijd, terwijl het sentiment op zonnepanelen
-    stijgt.
+Deze grafiek laat de polariteit (hoe positief of negatief iets wordt omschreven) zien in de loop der jaren,
+    voor verschillende methodes om energie op te wekken. In dit plot valt te zien dat de kerncentrale een hot-topic was tussen
+    2010 en 2012. Na deze opleving, blijft de gemiddelde polariteit op kerncentrales negatief. Er is ook te zien dat zonnepanelen
+    bijna niet negatief worden omschreven, en dat hun populariteit alleen maar toeneemt in de laatste paar jaren. Ook wordt
+    vanaf 2018 biomassa een groter onderwerp (wordt vaker genoemd in de teksten). Dit is gebaseerd op data uit een steekproef van
+    1000 documenten met energie-gerelateerde zoektermen.
 </p>
+
+
+
+<h4> Mantelzorg </h4>
+
+ <img style="class:center"; src="/static/images/plots/mantelzorg.png", width="100%", height="100%">
+<p>
+Deze grafiek laat een boxplot zien van de polariteit die verschillende partijen laten zien op het woord "mantelzorg".
+    Wat hier duidelijk aan opvalt, is hoe positief de SGP is over mantelzorg, zeker in vergelijking met de andere partijen.
+    Ook interessant is de afwezigheid van bepaalde partijen. Ik heb natuurlijk maar 200 berichten doorzocht, misschien kwamen de afwezige partijen net
+    in bericht 201-210 met allemaal meningen over mantelzorg. Een vollediger onderzoek is dus nodig.
+
+</p>
+
 {% endblock %}

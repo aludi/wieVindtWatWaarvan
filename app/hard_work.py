@@ -153,18 +153,21 @@ def calculateIDF(collection, calculate_own_idf, type_call):   # calculates IDF a
     idfDict = {}
     #print(collection)
     count = 0
+    count1 = 0
     collection_dict = {}
     for entry in collection:
         try:
             print("TYPE OF ENTRY: ", type(entry))
             for p in entry['item']:
-                party, location, date, text, topic, title = loadAttributes(p, 0)
+                party, location, date, text, topic, title = loadAttributes(p, count1)
+                print(count1)
                 cleanDocument = getCleanDocument(text)
                 collection_dict[title] = (party, location, date, cleanDocument, text, topic, title)
                 if calculate_own_idf:
                     bagOfWords = cleanDocument
                     idfDict = addToIDF(idfDict, bagOfWords)
                     count += 1
+                count1 += 1
         except KeyError:
             pass
     if calculate_own_idf:
@@ -251,10 +254,13 @@ def initialize_empty(item):
 
         
 def not_a_filtered_expression(phrase):
-    filteredList = ["huiselijk geweld", "doorgaande weg", "sociale huurwoningen", "sociale huurbouw", "publieke tribune", "hard gemaakt", "speciaal onderwijs", "provinciale staten",
-                    "vinger aan de pols", "schoon genoeg"]
-    for item in filteredList:
-        if item in phrase:
+    filteredList = [["huiselijk", "geweld"], ["doorgaande","weg"], ["sociale","huurwoningen"], ["sociale","huurbouw"], ["publieke","tribune"], ["hard","gemaakt"], ["speciaal", "onderwijs"], ["provinciale","staten"],
+                    ["vinger","aan","pols"], ["schoon", "genoeg"]]
+    #print("PHRASE  ", phrase)
+    for subList in filteredList:
+        check = all(item1 in phrase for item1 in subList)
+        #print(check, phrase, " contains all of ", subList)
+        if check:
             return False
     return True
 
@@ -417,7 +423,7 @@ def calculate_status_of_message(max_tfidf_val, userTopics, relevantWords, title)
 
 
 def reverse_polarity_if_needed(list_of_string, polarity, sent):
-    polarity_reversers = ["risico", "probleem", "problemen", "moeilijkheden"]
+    polarity_reversers = ["risico", "probleem", "problemen", "moeilijkheden", "bedreiging", "consequentie"]
     if "niet" in list_of_string and "niet" not in sent: # the pl tagger missed a negation
         return -1
     if polarity > 0:    # "enorm risico" is negatief
@@ -454,7 +460,7 @@ def get_lists(directList, tfidfVal, max_tfidf_val, userTopics, entry):
     list_objectivities = []
     list_words = []
 
-    if tfidfVal >= 0.01 or entry in userTopics:
+    if tfidfVal >= 0 or entry in userTopics:
         for tuple in directList:
             a, b = tuple
             # print("a: ",a, "b: ", b)
@@ -495,7 +501,7 @@ def write_to_db(party, location, date, topics, title, corpus, entry, average_pol
 
 def attach_direct_list(relevantWords, total_list, collected_words, word, sentiment):
     #print("total list", total_list)
-    if not_a_filtered_expression(" ".join(total_list)):
+    if not_a_filtered_expression(total_list):
         lemma = nlp(word)[0].lemma_
         if lemma in relevantWords.keys():    # we want to collect the lemmas as much as possible
             directList, contextList, tfidfVal = relevantWords[lemma]
@@ -524,12 +530,12 @@ def find_missed_negation(i, sent_words):
 def getSentiments(max_val_tf, relevantWords, text):
     sentiment_count = 0
     for sentence in text:   #passing each sentence the number of times a sentiment has occurred. do this before.
-        #print(sentence)
+        print(sentence)
         sentiments_in_sentence = {}
         sentiments_in_sentence_list = []
         for sentiment in pl.sentiment(sentence).assessments:
             sentiment_words, pol, obj, x = sentiment
-            #print(sentiment_words, sentiment)
+            print(sentiment_words, sentiment)
             # only add sentiments with a bit of flavor
             if (abs(pol) + abs(obj) > 0.1):
                 sentiments_in_sentence[" ".join(sentiment_words)] = sentiment # appending a tuple
@@ -549,7 +555,7 @@ def getSentiments(max_val_tf, relevantWords, text):
                     #print(chunk.text, chunk.pos_, chunk.dep_, "in here")
                     sentiment_chunk = get_sentiments_from_text_chunk(sentiments_in_sentence, chunk.text)
                     collected_words = recurse_to_find_entity(chunk, 0, 0, 0, 0, [])
-                    #print(collected_words)
+                    print(collected_words)
                     missed_negation = find_missed_negation(i, sentiment_chunk[0])
                     new_collected = missed_negation + sentiment_chunk[0]
                     if 'naar' not in sentiment_chunk[0]:
@@ -557,7 +563,8 @@ def getSentiments(max_val_tf, relevantWords, text):
                         for item in collected_words:
                             if item.isupper():
                                 word = item.lower()
-                                new_collected.append(word)
+                                if word not in new_collected:   # the word can't be in "new collected" already, that's how you get "ramp ramp chernobyl"
+                                    new_collected.append(word)
                         #word = collected_words[len(collected_words) - 1]
                         #print("\t", word , new_collected, sent)
                         if word != "":
@@ -598,6 +605,8 @@ def mainLoop(self, collection, idfDict, topics, corpus, type_call, collection_di
         get_values_for_row(self, relevantWords, collection_dict[item], userTopics, corpus, type_call, max)
         polarity_status, objectivity_status = calculate_status_of_message(max, userTopics, relevantWords, title)
         dict_of_status[title] = (polarity_status, objectivity_status)
+        print(polarity_status, objectivity_status)
+
         if type_call == 'api':
             self.set_polarity_and_objectivity(polarity_status, objectivity_status)
             print(title, polarity_status, objectivity_status)
