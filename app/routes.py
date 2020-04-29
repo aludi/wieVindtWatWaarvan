@@ -103,7 +103,7 @@ def download_data():
         return string_direct
         
     def generate():
-        yield ','.join(["title", "parties", "location", "date", "entity", "polarity", "objectivity", "direct_words"]) +'\n'
+        yield ','.join(["title", "parties", "location", "date", "entity", "polarity", "subjectivity", "direct_words"]) +'\n'
         for row in Sents().query.all():
             direct_words_string = create_appended_list(row.direct_words)
             yield ','.join([row.title, row.parties, row.location, row.date, row.entity, row.polarity, row.objectivity, direct_words_string])+'\n'
