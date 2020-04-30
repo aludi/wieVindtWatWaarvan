@@ -1,8 +1,7 @@
 # wieVindtWatWaarvan
 Sentiment analyse gebaseerd op de poliflw API, de spacy tagger, en pattern sentimenten.
 
-De flow van het hard_work() module die de sentiment-analyse doet
-is te zien in de flow_hard_work.png.
+De flow van de hard_work() module die de sentiment-analyse doet is te zien in de flow_hard_work.png.
 
 Twee API methodes:
 
